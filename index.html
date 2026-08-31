@@ -1,0 +1,3012 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRION · Comparativo Mensal de Atendimento</title>
+  <meta name="description" content="Apresentacao comparativa de metricas de atendimento IA entre meses." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="js/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-base: #08090f;
+      --bg-surface: #0f111a;
+      --bg-card: #141722;
+      --bg-card-hover: #1a1e2e;
+      --border: rgba(255,255,255,0.07);
+      --border-accent: rgba(255,255,255,0.12);
+      --text-primary: #f0f2ff;
+      --text-secondary: #8b92b8;
+      --text-muted: #565d82;
+
+      --blue:    #3b82f6;
+      --indigo:  #6366f1;
+      --purple:  #8b5cf6;
+      --pink:    #ec4899;
+      --emerald: #10b981;
+      --amber:   #f59e0b;
+      --rose:    #f43f5e;
+      --cyan:    #06b6d4;
+
+      --jul-color: #6366f1;
+      --ago-color: #10b981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 900px 500px at 15% 10%, rgba(99,102,241,0.09) 0%, transparent 70%),
+        radial-gradient(ellipse 700px 400px at 85% 85%, rgba(16,185,129,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 300px at 50% 40%, rgba(139,92,246,0.05) 0%, transparent 60%);
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 32px 80px;
+    }
+
+    /* ── Header & Carrossel Arrastavel ── */
+    .pres-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .pres-header .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--indigo);
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 100px;
+      padding: 5px 14px;
+      margin-bottom: 20px;
+    }
+    .pres-header h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--indigo) 50%, var(--emerald) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .pres-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Componente Carrossel Arrastavel ── */
+    .month-carousel-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 24px;
+      user-select: none;
+    }
+    .month-carousel-track {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      cursor: grab;
+      padding: 6px 12px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      max-width: 680px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .month-carousel-track::-webkit-scrollbar {
+      display: none;
+    }
+    .month-carousel-track:active {
+      cursor: grabbing;
+    }
+    .month-carousel-pill {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .month-carousel-pill:hover {
+      border-color: var(--border-accent);
+      color: var(--text-primary);
+    }
+    .month-carousel-pill.active {
+      background: rgba(99,102,241,0.15);
+      border-color: rgba(99,102,241,0.4);
+      color: var(--text-primary);
+      box-shadow: 0 4px 16px rgba(99,102,241,0.2);
+    }
+    .carousel-nav-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .carousel-nav-btn:hover {
+      background: var(--indigo);
+      color: #fff;
+      border-color: var(--indigo);
+    }
+
+    /* ── Titulo Secao ── */
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 44px 0 24px;
+    }
+    .section-heading .line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-accent), transparent);
+    }
+    .section-heading h2 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .section-heading .icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    /* ── KPI Grid 3x2 ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-accent);
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 16px 16px 0 0;
+    }
+    .kpi-card.blue::before   { background: linear-gradient(90deg, var(--blue), transparent); }
+    .kpi-card.indigo::before { background: linear-gradient(90deg, var(--indigo), transparent); }
+    .kpi-card.purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+    .kpi-card.emerald::before{ background: linear-gradient(90deg, var(--emerald), transparent); }
+    .kpi-card.amber::before  { background: linear-gradient(90deg, var(--amber), transparent); }
+    .kpi-card.rose::before   { background: linear-gradient(90deg, var(--rose), transparent); }
+    .kpi-card.cyan::before   { background: linear-gradient(90deg, var(--cyan), transparent); }
+
+    .kpi-card__label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .kpi-compare-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .kpi-side { flex: 1; }
+    .kpi-side__month {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .kpi-side__month.prev { color: #818cf8; }
+    .kpi-side__month.curr { color: #34d399; }
+    .kpi-side__value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .kpi-side__value.prev { color: #c7d2fe; }
+    .kpi-side__value.curr { color: #a7f3d0; }
+
+    .kpi-divider {
+      width: 1px;
+      height: 48px;
+      background: var(--border-accent);
+      flex-shrink: 0;
+    }
+    .delta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid;
+      margin-bottom: 8px;
+    }
+    .delta-badge.up {
+      color: #34d399;
+      background: rgba(16,185,129,0.1);
+      border-color: rgba(16,185,129,0.25);
+    }
+    .delta-badge.down {
+      color: #f87171;
+      background: rgba(248,113,113,0.1);
+      border-color: rgba(248,113,113,0.25);
+    }
+
+    .kpi-bar-track {
+      height: 4px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .kpi-bar-fill-prev {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--jul-color);
+      opacity: 0.6;
+    }
+    .kpi-bar-fill-curr {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--ago-color);
+      margin-top: 3px;
+    }
+    .kpi-insight {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Resolucoes sem Operador ── */
+    .funnel-hero-card {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(6,182,212,0.04) 100%);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 24px;
+    }
+    .funnel-hero-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #818cf8;
+      margin-bottom: 12px;
+    }
+    .funnel-hero-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .funnel-hero-stat { flex: 1; min-width: 220px; }
+    .funnel-hero-num {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .funnel-hero-sub { font-size: 0.78rem; color: var(--text-secondary); }
+
+    .funnel-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .funnel-step-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+    }
+    .funnel-step-box__title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .funnel-step-box__badge {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 100px;
+      font-weight: 700;
+      border: 1px solid;
+    }
+    .funnel-bar-row { margin-bottom: 12px; }
+    .funnel-bar-row:last-child { margin-bottom: 0; }
+    .funnel-bar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .funnel-bar-track {
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .funnel-bar-fill { height: 100%; border-radius: 6px; }
+
+    /* ── Custos I.A Strip & Panel ── */
+    .highlight-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .hl-cell {
+      background: var(--bg-card);
+      padding: 28px 24px;
+      text-align: center;
+    }
+    .hl-cell__label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .hl-cell__value {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .hl-cell__sub { font-size: 0.72rem; color: var(--text-secondary); }
+
+    /* ── Graficos ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .chart-grid.single { grid-template-columns: 1fr; }
+    .chart-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .chart-panel__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .chart-panel__title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .chart-panel__sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .chart-canvas-wrap { position: relative; height: 220px; }
+    .chart-canvas-wrap.tall { height: 280px; }
+
+    /* ── Reducao Custo Hero ── */
+    .savings-hero {
+      background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.03) 100%);
+      border: 1px solid rgba(16,185,129,0.18);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      margin: 8px 0;
+    }
+    .savings-hero__eyebrow {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--emerald);
+      margin-bottom: 12px;
+    }
+    .savings-hero__value {
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #34d399, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .savings-hero__label { font-size: 1rem; color: var(--text-secondary); }
+    .savings-hero__sub { margin-top: 16px; font-size: 0.8rem; color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .highlight-strip { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .wrapper { padding: 24px 16px 60px; }
+    }
+
+    .pres-footer {
+      text-align: center;
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<div class="wrapper">
+
+  <!-- ── Header ── -->
+  <header class="pres-header">
+    <div class="eyebrow">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+      CRION · Inteligência Artificial
+    </div>
+    <h1 id="header-title">Comparativo Mensal<br><span id="lbl-mes-prev">Julho</span> vs <span id="lbl-mes-curr">Agosto</span> 2026</h1>
+    <p class="subtitle">Análise detalhada de desempenho e custos dos agentes de IA no atendimento ao cliente.</p>
+
+    <!-- Carrossel de Seleção de Meses (Apenas o mês comparado atual) -->
+    <div class="month-carousel-wrapper">
+      <div class="month-carousel-track" id="month-carousel-track" style="cursor: default;">
+        <div class="month-carousel-pill active" data-prev="julho" data-curr="agosto" onclick="selecionarParMeses('julho', 'agosto', this)">
+          <div class="mpill-dot" style="width:8px;height:8px;border-radius:50%;background:#34d399;"></div> Julho vs Agosto 2026
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- ── Destaque: Redução de Custo ── -->
+  <div class="savings-hero">
+    <div class="savings-hero__eyebrow">Resultado em Destaque</div>
+    <div class="savings-hero__value" id="val-hero-pct">-66,6%</div>
+    <div class="savings-hero__label">Variação no Gasto Total de IA</div>
+    <div class="savings-hero__sub" id="val-hero-sub">De R$ 27.524 em Julho para R$ 9.201 em Agosto — economia de R$ 18.323</div>
+  </div>
+
+  <!-- ── Secao 1: KPIs Principais ── -->
+  <div class="section-heading">
+    <div class="icon" style="background:rgba(99,102,241,0.12);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </div>
+    <h2>Métricas Gerais de Atendimento</h2>
+    <div class="line"></div>
+  </div>
+
+  <div class="kpi-grid">
+
+    <!-- URA Total -->
+    <div class="kpi-card blue">
+      <div class="kpi-card__label">URA Total</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="kpi-mprev-ura">Julho</div>
+          <div class="kpi-side__value prev" id="kpi-vprev-ura">16.614</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="kpi-mcurr-ura">Agosto</div>
+          <div class="kpi-side__value curr" id="kpi-vcurr-ura">17.211</div>
+        </div>
+      </div>
+      <span class="delta-badge up" id="delta-ura">+3,6% &uarr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" id="bar-prev-ura" style="width:96.5%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" id="bar-curr-ura" style="width:100%"></div></div>
+      <div class="kpi-insight" id="ins-ura">Volume total de ligações recebidas na URA.</div>
+    </div>
+
+    <!-- URA Atendidas -->
+    <div class="kpi-card indigo">
+      <div class="kpi-card__label">URA Atendidas</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="kpi-mprev-uraat">Julho</div>
+          <div class="kpi-side__value prev" id="kpi-vprev-uraat">11.157</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="kpi-mcurr-uraat">Agosto</div>
+          <div class="kpi-side__value curr" id="kpi-vcurr-uraat">12.411</div>
+        </div>
+      </div>
+      <span class="delta-badge up" id="delta-uraat">+11,2% &uarr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" id="bar-prev-uraat" style="width:89.9%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" id="bar-curr-uraat" style="width:100%"></div></div>
+      <div class="kpi-insight" id="ins-uraat">Mais chamadas efetivamente atendidas na URA.</div>
+    </div>
+
+    <!-- URA Auto Servico -->
+    <div class="kpi-card purple">
+      <div class="kpi-card__label">URA Auto Serviço</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="kpi-mprev-auto">Julho</div>
+          <div class="kpi-side__value prev" id="kpi-vprev-auto">5.197</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="kpi-mcurr-auto">Agosto</div>
+          <div class="kpi-side__value curr" id="kpi-vcurr-auto">8.296</div>
+        </div>
+      </div>
+      <span class="delta-badge up" id="delta-auto">+59,6% &uarr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" id="bar-prev-auto" style="width:62.6%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" id="bar-curr-auto" style="width:100%"></div></div>
+      <div class="kpi-insight" id="ins-auto">Salto no auto atendimento sem necessidade de operador humano.</div>
+    </div>
+
+    <!-- Vonix Atendidas -->
+    <div class="kpi-card cyan">
+      <div class="kpi-card__label">Vonix Atendidas</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="kpi-mprev-vonat">Julho</div>
+          <div class="kpi-side__value prev" id="kpi-vprev-vonat">7.052</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="kpi-mcurr-vonat">Agosto</div>
+          <div class="kpi-side__value curr" id="kpi-vcurr-vonat">4.880</div>
+        </div>
+      </div>
+      <span class="delta-badge down" id="delta-vonat">-30,8% &darr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" id="bar-prev-vonat" style="width:100%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" id="bar-curr-vonat" style="width:69.2%"></div></div>
+      <div class="kpi-insight">A queda de ligações representa apenas uma redução de atendimentos pela Vonix (a Vonix recebeu menos chamadas).</div>
+    </div>
+
+    <!-- Vonix Abandonadas -->
+    <div class="kpi-card rose">
+      <div class="kpi-card__label">Vonix Abandonadas</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="kpi-mprev-vonab">Julho</div>
+          <div class="kpi-side__value prev" id="kpi-vprev-vonab">949</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="kpi-mcurr-vonab">Agosto</div>
+          <div class="kpi-side__value curr" id="kpi-vcurr-vonab">902</div>
+        </div>
+      </div>
+      <span class="delta-badge up" id="delta-vonab">-5,0% &darr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" id="bar-prev-vonab" style="width:100%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" id="bar-curr-vonab" style="width:95%"></div></div>
+      <div class="kpi-insight" id="ins-vonab">Comportamento de abandono na fila do atendimento.</div>
+    </div>
+
+    <!-- Atendimentos IA -->
+    <div class="kpi-card emerald">
+      <div class="kpi-card__label">Atendimentos IA</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="kpi-mprev-ia">Julho</div>
+          <div class="kpi-side__value prev" id="kpi-vprev-ia">9.259</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="kpi-mcurr-ia">Agosto</div>
+          <div class="kpi-side__value curr" id="kpi-vcurr-ia">7.926</div>
+        </div>
+      </div>
+      <span class="delta-badge down" id="delta-ia">-14,4% &darr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" id="bar-prev-ia" style="width:100%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" id="bar-curr-ia" style="width:85.6%"></div></div>
+      <div class="kpi-insight" id="ins-ia">Volume total de atendimentos processados pelos agentes virtuais IA.</div>
+    </div>
+
+  </div>
+
+  <!-- ── Secao: Resolucoes sem Operador ── -->
+  <div class="section-heading">
+    <div class="icon" style="background:rgba(6,182,212,0.12);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    </div>
+    <h2>Resoluções sem Operador — <span id="lbl-funnel-prev">Julho</span> / <span id="lbl-funnel-curr">Agosto</span></h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Hero Card Funil: Retenção Automática Total sem (% do total URA) -->
+  <div class="funnel-hero-card">
+    <div class="funnel-hero-title">Resoluções sem Operador (<span id="lbl-hero-prev">Julho</span> / <span id="lbl-hero-curr">Agosto</span>)</div>
+    <div class="funnel-hero-row">
+      <div class="funnel-hero-stat">
+        <div style="font-size: 0.72rem; color: #a5b4fc; font-weight: 700; text-transform: uppercase;" id="fn-lbl-prev">Julho</div>
+        <div class="funnel-hero-num" style="color: #c7d2fe;"><span id="fn-val-prev">9.375</span></div>
+        <div class="funnel-hero-sub" id="fn-sub-prev">Auto Serviço URA (5.197) + Solucionadas pela IA (4.178)</div>
+      </div>
+      <div style="width: 1px; height: 50px; background: var(--border-accent);"></div>
+      <div class="funnel-hero-stat">
+        <div style="font-size: 0.72rem; color: #6ee7b7; font-weight: 700; text-transform: uppercase;" id="fn-lbl-curr">Agosto</div>
+        <div class="funnel-hero-num" style="color: #a7f3d0;"><span id="fn-val-curr">10.792</span></div>
+        <div class="funnel-hero-sub" id="fn-sub-curr">Auto Serviço URA (8.296) + Solucionadas pela IA (2.496)</div>
+      </div>
+      <div style="min-width: 160px; text-align: right;">
+        <span class="delta-badge up" style="font-size: 0.95rem; padding: 6px 14px;" id="fn-delta">+15,1% &uarr;</span>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;" id="fn-diff">+1.417 chamadas resolvidas sem custo humano</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de Detalhamento das Etapas do Funil -->
+  <div class="funnel-steps-grid">
+
+    <div class="funnel-step-box">
+      <div class="funnel-step-box__title">
+        <span>1. Auto Serviço URA</span>
+        <span class="funnel-step-box__badge" style="color:#34d399; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3);" id="f1-badge">+59,6% &uarr;</span>
+      </div>
+      <div class="funnel-bar-row">
+        <div class="funnel-bar-meta"><span style="color:#818cf8;" id="f1-lbl-prev">Julho</span><span id="f1-val-prev">5.197</span></div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" id="f1-bar-prev" style="width:62.6%; background:var(--jul-color);"></div></div>
+      </div>
+      <div class="funnel-bar-row">
+        <div class="funnel-bar-meta"><span style="color:#34d399;" id="f1-lbl-curr">Agosto</span><span id="f1-val-curr">8.296</span></div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" id="f1-bar-curr" style="width:100%; background:var(--ago-color);"></div></div>
+      </div>
+      <div class="kpi-insight" id="f1-ins">Resoluções automáticas efetuadas no menu interativo da URA.</div>
+    </div>
+
+    <!-- 2. Atendimento & Solução IA - Se o valor de chamadas resolvidas cair, fica VERMELHO -->
+    <div class="funnel-step-box">
+      <div class="funnel-step-box__title">
+        <span>2. Atendimento & Solução IA</span>
+        <span class="funnel-step-box__badge" style="color:#f87171; background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.25);" id="f2-badge">-40,3% &darr;</span>
+      </div>
+      <div class="funnel-bar-row">
+        <div class="funnel-bar-meta"><span style="color:#818cf8;" id="f2-lbl-prev">Julho (Solucionadas)</span><span id="f2-val-prev">4.178</span></div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" id="f2-bar-prev" style="width:100%; background:var(--jul-color);"></div></div>
+      </div>
+      <div class="funnel-bar-row">
+        <div class="funnel-bar-meta"><span style="color:#34d399;" id="f2-lbl-curr">Agosto (Solucionadas)</span><span id="f2-val-curr">2.496</span></div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" id="f2-bar-curr" style="width:59.7%; background:var(--ago-color);"></div></div>
+      </div>
+      <div class="kpi-insight" id="f2-ins">Chamadas atendidas e finalizadas diretamente pelo agente de IA.</div>
+    </div>
+
+    <div class="funnel-step-box">
+      <div class="funnel-step-box__title">
+        <span>3. Carga Operador Humano</span>
+        <span class="funnel-step-box__badge" style="color:#34d399; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3);" id="f3-badge">-30,8% Carga &darr;</span>
+      </div>
+      <div class="funnel-bar-row">
+        <div class="funnel-bar-meta"><span style="color:#818cf8;" id="f3-lbl-prev">Julho (Vonix Atend.)</span><span id="f3-val-prev">7.052</span></div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" id="f3-bar-prev" style="width:100%; background:var(--jul-color);"></div></div>
+      </div>
+      <div class="funnel-bar-row">
+        <div class="funnel-bar-meta"><span style="color:#34d399;" id="f3-lbl-curr">Agosto (Vonix Atend.)</span><span id="f3-val-curr">4.880</span></div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" id="f3-bar-curr" style="width:69.2%; background:var(--ago-color);"></div></div>
+      </div>
+      <div class="kpi-insight" id="f3-ins">Volume total de ligações atendidas pelos operadores da central Vonix.</div>
+    </div>
+
+  </div>
+
+  <!-- ── Secao 2: Custos ── -->
+  <div class="section-heading">
+    <div class="icon" style="background:rgba(16,185,129,0.12);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <h2>Custos de IA</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Cards Mantidos de Custo -->
+  <div class="highlight-strip">
+    <div class="hl-cell">
+      <div class="hl-cell__label" id="c-lbl-prev">Custo Total Julho</div>
+      <div class="hl-cell__value" style="color:#c7d2fe;" id="c-val-prev">R$ 27.524</div>
+      <div class="hl-cell__sub">Gasto total com IA no mês</div>
+    </div>
+    <div class="hl-cell">
+      <div class="hl-cell__label" id="c-lbl-curr">Custo Total Agosto</div>
+      <div class="hl-cell__value" style="color:#a7f3d0;" id="c-val-curr">R$ 9.201</div>
+      <div class="hl-cell__sub">Redução no período</div>
+    </div>
+    <div class="hl-cell">
+      <div class="hl-cell__label">Custo Média / Atend IA</div>
+      <div class="hl-cell__value" style="color:#fde68a;" id="c-val-unit">R$ 1,16</div>
+      <div class="hl-cell__sub" id="c-sub-unit">Agosto — de R$2,97 para R$1,16</div>
+    </div>
+  </div>
+
+  <!-- Grafico Custos I.A Sem Legenda, Sem Hover e Linha Reta -->
+  <div class="chart-panel" style="margin-top: 16px;">
+    <div class="chart-panel__header">
+      <div>
+        <div class="chart-panel__title">Custos I.A</div>
+        <div class="chart-panel__sub">Soma acumulada quinzenal e mensal dos gastos com IA</div>
+      </div>
+    </div>
+    <div class="chart-canvas-wrap" style="height: 270px;">
+      <canvas id="chartCustoHeartbeat"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Secao 3: Graficos Diarios ── -->
+  <div class="section-heading">
+    <div class="icon" style="background:rgba(245,158,11,0.12);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <h2>Evolução Diária Comparada</h2>
+    <div class="line"></div>
+  </div>
+
+  <div class="chart-grid">
+
+    <div class="chart-panel">
+      <div class="chart-panel__header">
+        <div>
+          <div class="chart-panel__title">Atendimentos IA por Dia</div>
+          <div class="chart-panel__sub">Comparativo diário entre os dois meses</div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--jul-color)"></div><span class="lg-prev">Julho</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--ago-color)"></div><span class="lg-curr">Agosto</span></div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chartIA"></canvas></div>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-panel__header">
+        <div>
+          <div class="chart-panel__title">Custo Total IA por Dia (R$)</div>
+          <div class="chart-panel__sub">Gasto diário comparado</div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--jul-color)"></div><span class="lg-prev">Julho</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--ago-color)"></div><span class="lg-curr">Agosto</span></div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chartCusto"></canvas></div>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-panel__header">
+        <div>
+          <div class="chart-panel__title">Volume URA por Dia</div>
+          <div class="chart-panel__sub">Total de ligações recebidas na URA</div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--jul-color)"></div><span class="lg-prev">Julho</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--ago-color)"></div><span class="lg-curr">Agosto</span></div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chartURA"></canvas></div>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-panel__header">
+        <div>
+          <div class="chart-panel__title">Vonix Atendidas por Dia</div>
+          <div class="chart-panel__sub">Chamadas atendidas por operador humano</div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--jul-color)"></div><span class="lg-prev">Julho</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--ago-color)"></div><span class="lg-curr">Agosto</span></div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chartVonix"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- ── Secao 4: Grafico de Barras Resumo ── -->
+  <div class="section-heading">
+    <div class="icon" style="background:rgba(139,92,246,0.12);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.2"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
+    </div>
+    <h2>Visão Geral — Resumo por Métrica</h2>
+    <div class="line"></div>
+  </div>
+
+  <div class="chart-grid single">
+    <div class="chart-panel">
+      <div class="chart-panel__header">
+        <div>
+          <div class="chart-panel__title">Comparativo de Métricas Mensais</div>
+          <div class="chart-panel__sub">Valores acumulados no mês</div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--jul-color)"></div><span class="lg-prev">Julho</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--ago-color)"></div><span class="lg-curr">Agosto</span></div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap tall"><canvas id="chartBarras"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── Secao 5: Tempos Medios & Resolucao IA ── -->
+  <div class="section-heading">
+    <div class="icon" style="background:rgba(245,158,11,0.12);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <h2>Tempos Médios e Resolução IA</h2>
+    <div class="line"></div>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px,1fr));">
+
+    <!-- TME -->
+    <div class="kpi-card amber">
+      <div class="kpi-card__label">TME — Tempo Médio de Espera</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="tm-mprev-tme">Julho</div>
+          <div class="kpi-side__value prev" id="tm-vprev-tme">1min 53s</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="tm-mcurr-tme">Agosto</div>
+          <div class="kpi-side__value curr" id="tm-vcurr-tme">2min 24s</div>
+        </div>
+      </div>
+      <span class="delta-badge down" id="tm-delta-tme">+26,8% &uarr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" style="width:78.7%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" style="width:100%"></div></div>
+      <div class="kpi-insight">Tempo médio que o cliente aguarda na fila de espera.</div>
+    </div>
+
+    <!-- TMA IA -->
+    <div class="kpi-card purple">
+      <div class="kpi-card__label">TMA IA — Tempo Médio de Atendimento</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="tm-mprev-tma">Julho</div>
+          <div class="kpi-side__value prev" id="tm-vprev-tma">2min 16s</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="tm-mcurr-tma">Agosto</div>
+          <div class="kpi-side__value curr" id="tm-vcurr-tma">1min 48s</div>
+        </div>
+      </div>
+      <span class="delta-badge up" id="tm-delta-tma">-21,1% &darr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" style="width:100%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" style="width:78.9%"></div></div>
+      <div class="kpi-insight" id="tm-ins-tma">Duração média de cada interação tratada pela inteligência artificial.</div>
+    </div>
+
+    <!-- Resolucao IA: Se o valor de chamadas resolvidas cair (negativo), fica em VERMELHO -->
+    <div class="kpi-card indigo">
+      <div class="kpi-card__label">Resolução IA (Solucionadas)</div>
+      <div class="kpi-compare-row">
+        <div class="kpi-side">
+          <div class="kpi-side__month prev" id="tm-mprev-sol">Julho</div>
+          <div class="kpi-side__value prev" id="tm-vprev-sol">4.178</div>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-side">
+          <div class="kpi-side__month curr" id="tm-mcurr-sol">Agosto</div>
+          <div class="kpi-side__value curr" id="tm-vcurr-sol">2.496</div>
+        </div>
+      </div>
+      <span class="delta-badge down" id="tm-delta-sol">-40,3% &darr;</span>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-prev" style="width:100%"></div></div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill-curr" style="width:59.7%"></div></div>
+      <div class="kpi-insight">Total de chamadas resolvidas com sucesso diretamente pela IA.</div>
+    </div>
+
+  </div>
+
+  <div class="pres-footer">
+    CRION · Painel de Inteligência de Atendimento · Agosto 2026
+  </div>
+
+</div>
+
+<script>
+const DB_COMPARATIVO = {
+  "junho": {
+    "totais": {
+      "ura_total": 26170.0,
+      "ura_atendidas": 17229.0,
+      "ura_auto_servico": 9756.0,
+      "vonix_recebidas": 8982.0,
+      "vonix_atendidas": 7830.0,
+      "vonix_abandonadas": 1152.0,
+      "ia_atendimento_total": 11631.0,
+      "ia_transferencia": 7036.0,
+      "ia_solucionadas": 4600.0,
+      "ia_custo_total": 36342.65,
+      "custo_15": 22516.49
+    },
+    "dias": [
+      {
+        "day": 1,
+        "ura": 2874.0,
+        "ura_atendidas": 2119.0,
+        "auto_servico": 1442.0,
+        "vonix_recebidas": 782.0,
+        "vonix_atendidas": 437.0,
+        "vonix_abandonadas": 345.0,
+        "ia_total": 675.0,
+        "ia_transferencia": 466.0,
+        "ia_solucionadas": 209.0,
+        "custo": 2163.61
+      },
+      {
+        "day": 2,
+        "ura": 2425.0,
+        "ura_atendidas": 1782.0,
+        "auto_servico": 1305.0,
+        "vonix_recebidas": 617.0,
+        "vonix_atendidas": 473.0,
+        "vonix_abandonadas": 144.0,
+        "ia_total": 842.0,
+        "ia_transferencia": 445.0,
+        "ia_solucionadas": 397.0,
+        "custo": 2246.44
+      },
+      {
+        "day": 3,
+        "ura": 1560.0,
+        "ura_atendidas": 1025.0,
+        "auto_servico": 704.0,
+        "vonix_recebidas": 432.0,
+        "vonix_atendidas": 395.0,
+        "vonix_abandonadas": 37.0,
+        "ia_total": 696.0,
+        "ia_transferencia": 371.0,
+        "ia_solucionadas": 325.0,
+        "custo": 2053.47
+      },
+      {
+        "day": 4,
+        "ura": 365.0,
+        "ura_atendidas": 254.0,
+        "auto_servico": 231.0,
+        "vonix_recebidas": 23.0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 23.0,
+        "ia_total": 178.0,
+        "ia_transferencia": 39.0,
+        "ia_solucionadas": 139.0,
+        "custo": 995.76
+      },
+      {
+        "day": 5,
+        "ura": 1762.0,
+        "ura_atendidas": 1262.0,
+        "auto_servico": 704.0,
+        "vonix_recebidas": 487.0,
+        "vonix_atendidas": 410.0,
+        "vonix_abandonadas": 77.0,
+        "ia_total": 712.0,
+        "ia_transferencia": 369.0,
+        "ia_solucionadas": 343.0,
+        "custo": 2107.33
+      },
+      {
+        "day": 6,
+        "ura": 253.0,
+        "ura_atendidas": 183.0,
+        "auto_servico": 175.0,
+        "vonix_recebidas": 8.0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 8.0,
+        "ia_total": 107.0,
+        "ia_transferencia": 8.0,
+        "ia_solucionadas": 99.0,
+        "custo": 665.75
+      },
+      {
+        "day": 7,
+        "ura": 51.0,
+        "ura_atendidas": 31.0,
+        "auto_servico": 1.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 17.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 17.0,
+        "custo": 679.65
+      },
+      {
+        "day": 8,
+        "ura": 2078.0,
+        "ura_atendidas": 1298.0,
+        "auto_servico": 816.0,
+        "vonix_recebidas": 631.0,
+        "vonix_atendidas": 554.0,
+        "vonix_abandonadas": 77.0,
+        "ia_total": 958.0,
+        "ia_transferencia": 481.0,
+        "ia_solucionadas": 477.0,
+        "custo": 2280.16
+      },
+      {
+        "day": 9,
+        "ura": 1963.0,
+        "ura_atendidas": 1129.0,
+        "auto_servico": 687.0,
+        "vonix_recebidas": 581.0,
+        "vonix_atendidas": 511.0,
+        "vonix_abandonadas": 70.0,
+        "ia_total": 854.0,
+        "ia_transferencia": 449.0,
+        "ia_solucionadas": 405.0,
+        "custo": 2239.11
+      },
+      {
+        "day": 10,
+        "ura": 1382.0,
+        "ura_atendidas": 977.0,
+        "auto_servico": 687.0,
+        "vonix_recebidas": 592.0,
+        "vonix_atendidas": 529.0,
+        "vonix_abandonadas": 63.0,
+        "ia_total": 776.0,
+        "ia_transferencia": 500.0,
+        "ia_solucionadas": 276.0,
+        "custo": 1890.61
+      },
+      {
+        "day": 11,
+        "ura": 1025.0,
+        "ura_atendidas": 698.0,
+        "auto_servico": 367.0,
+        "vonix_recebidas": 423.0,
+        "vonix_atendidas": 405.0,
+        "vonix_abandonadas": 18.0,
+        "ia_total": 528.0,
+        "ia_transferencia": 351.0,
+        "ia_solucionadas": 177.0,
+        "custo": 1462.35
+      },
+      {
+        "day": 12,
+        "ura": 774.0,
+        "ura_atendidas": 522.0,
+        "auto_servico": 267.0,
+        "vonix_recebidas": 367.0,
+        "vonix_atendidas": 354.0,
+        "vonix_abandonadas": 13.0,
+        "ia_total": 386.0,
+        "ia_transferencia": 286.0,
+        "ia_solucionadas": 100.0,
+        "custo": 1045.38
+      },
+      {
+        "day": 13,
+        "ura": 105.0,
+        "ura_atendidas": 80.0,
+        "auto_servico": 80.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 46.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 46.0,
+        "custo": 502.64
+      },
+      {
+        "day": 14,
+        "ura": 51.0,
+        "ura_atendidas": 31.0,
+        "auto_servico": 1.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 22.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 22.0,
+        "custo": 658.27
+      },
+      {
+        "day": 15,
+        "ura": 996.0,
+        "ura_atendidas": 699.0,
+        "auto_servico": 11.0,
+        "vonix_recebidas": 460.0,
+        "vonix_atendidas": 411.0,
+        "vonix_abandonadas": 49.0,
+        "ia_total": 531.0,
+        "ia_transferencia": 368.0,
+        "ia_solucionadas": 163.0,
+        "custo": 1525.96
+      },
+      {
+        "day": 16,
+        "ura": 985.0,
+        "ura_atendidas": 530.0,
+        "auto_servico": 211.0,
+        "vonix_recebidas": 394.0,
+        "vonix_atendidas": 371.0,
+        "vonix_abandonadas": 23.0,
+        "ia_total": 402.0,
+        "ia_transferencia": 303.0,
+        "ia_solucionadas": 99.0,
+        "custo": 1264.26
+      },
+      {
+        "day": 17,
+        "ura": 763.0,
+        "ura_atendidas": 403.0,
+        "auto_servico": 166.0,
+        "vonix_recebidas": 276.0,
+        "vonix_atendidas": 274.0,
+        "vonix_abandonadas": 2.0,
+        "ia_total": 301.0,
+        "ia_transferencia": 211.0,
+        "ia_solucionadas": 90.0,
+        "custo": 1090.36
+      },
+      {
+        "day": 18,
+        "ura": 683.0,
+        "ura_atendidas": 371.0,
+        "auto_servico": 118.0,
+        "vonix_recebidas": 327.0,
+        "vonix_atendidas": 324.0,
+        "vonix_abandonadas": 3.0,
+        "ia_total": 335.0,
+        "ia_transferencia": 251.0,
+        "ia_solucionadas": 84.0,
+        "custo": 1226.16
+      },
+      {
+        "day": 19,
+        "ura": 683.0,
+        "ura_atendidas": 371.0,
+        "auto_servico": 160.0,
+        "vonix_recebidas": 304.0,
+        "vonix_atendidas": 301.0,
+        "vonix_abandonadas": 3.0,
+        "ia_total": 324.0,
+        "ia_transferencia": 246.0,
+        "ia_solucionadas": 78.0,
+        "custo": 1216.71
+      },
+      {
+        "day": 20,
+        "ura": 151.0,
+        "ura_atendidas": 83.0,
+        "auto_servico": 83.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 52.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 52.0,
+        "custo": 491.59
+      },
+      {
+        "day": 21,
+        "ura": 1.0,
+        "ura_atendidas": 1.0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 13.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 13.0,
+        "custo": 642.2
+      },
+      {
+        "day": 22,
+        "ura": 1112.0,
+        "ura_atendidas": 653.0,
+        "auto_servico": 275.0,
+        "vonix_recebidas": 480.0,
+        "vonix_atendidas": 424.0,
+        "vonix_abandonadas": 56.0,
+        "ia_total": 527.0,
+        "ia_transferencia": 380.0,
+        "ia_solucionadas": 147.0,
+        "custo": 1327.73
+      },
+      {
+        "day": 23,
+        "ura": 462.0,
+        "ura_atendidas": 286.0,
+        "auto_servico": 20.0,
+        "vonix_recebidas": 356.0,
+        "vonix_atendidas": 341.0,
+        "vonix_abandonadas": 15.0,
+        "ia_total": 402.0,
+        "ia_transferencia": 292.0,
+        "ia_solucionadas": 110.0,
+        "custo": 984.76
+      },
+      {
+        "day": 24,
+        "ura": 575.0,
+        "ura_atendidas": 355.0,
+        "auto_servico": 155.0,
+        "vonix_recebidas": 257.0,
+        "vonix_atendidas": 245.0,
+        "vonix_abandonadas": 12.0,
+        "ia_total": 309.0,
+        "ia_transferencia": 201.0,
+        "ia_solucionadas": 108.0,
+        "custo": 838.58
+      },
+      {
+        "day": 25,
+        "ura": 598.0,
+        "ura_atendidas": 425.0,
+        "auto_servico": 232.0,
+        "vonix_recebidas": 286.0,
+        "vonix_atendidas": 274.0,
+        "vonix_abandonadas": 12.0,
+        "ia_total": 334.0,
+        "ia_transferencia": 142.0,
+        "ia_solucionadas": 192.0,
+        "custo": 873.49
+      },
+      {
+        "day": 26,
+        "ura": 637.0,
+        "ura_atendidas": 459.0,
+        "auto_servico": 245.0,
+        "vonix_recebidas": 310.0,
+        "vonix_atendidas": 289.0,
+        "vonix_abandonadas": 21.0,
+        "ia_total": 358.0,
+        "ia_transferencia": 244.0,
+        "ia_solucionadas": 119.0,
+        "custo": 828.82
+      },
+      {
+        "day": 27,
+        "ura": 143.0,
+        "ura_atendidas": 90.0,
+        "auto_servico": 90.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 53.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 53.0,
+        "custo": 492.57
+      },
+      {
+        "day": 28,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 14.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 14.0,
+        "custo": 602.91
+      },
+      {
+        "day": 29,
+        "ura": 512.0,
+        "ura_atendidas": 354.0,
+        "auto_servico": 150.0,
+        "vonix_recebidas": 204.0,
+        "vonix_atendidas": 187.0,
+        "vonix_abandonadas": 17.0,
+        "ia_total": 295.0,
+        "ia_transferencia": 223.0,
+        "ia_solucionadas": 72.0,
+        "custo": 882.98
+      },
+      {
+        "day": 30,
+        "ura": 1201.0,
+        "ura_atendidas": 758.0,
+        "auto_servico": 373.0,
+        "vonix_recebidas": 385.0,
+        "vonix_atendidas": 321.0,
+        "vonix_abandonadas": 64.0,
+        "ia_total": 584.0,
+        "ia_transferencia": 410.0,
+        "ia_solucionadas": 174.0,
+        "custo": 1063.04
+      },
+      {
+        "day": 1,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 2,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 3,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 4,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 5,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 6,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 7,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 8,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 9,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 10,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 11,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 12,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 13,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 14,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 15,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 16,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 17,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 18,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 19,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 20,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 21,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 22,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 23,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 24,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 25,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 26,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 27,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 28,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 29,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      },
+      {
+        "day": 30,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      }
+    ]
+  },
+  "julho": {
+    "totais": {
+      "ura_total": 16614.0,
+      "ura_atendidas": 11157.0,
+      "ura_auto_servico": 5197.0,
+      "vonix_recebidas": 8001.0,
+      "vonix_atendidas": 7052.0,
+      "vonix_abandonadas": 949.0,
+      "ia_atendimento_total": 9259.0,
+      "ia_transferencia": 5901.0,
+      "ia_solucionadas": 4178.0,
+      "ia_custo_total": 15435.25,
+      "custo_15": 7717.63
+    },
+    "dias": [
+      {
+        "day": 1,
+        "ura": 949.0,
+        "ura_atendidas": 631.0,
+        "auto_servico": 222.0,
+        "vonix_recebidas": 522.0,
+        "vonix_atendidas": 461.0,
+        "vonix_abandonadas": 61.0,
+        "ia_total": 595.0,
+        "ia_transferencia": 427.0,
+        "ia_solucionadas": 271.0,
+        "custo": 638.38
+      },
+      {
+        "day": 2,
+        "ura": 838.0,
+        "ura_atendidas": 594.0,
+        "auto_servico": 256.0,
+        "vonix_recebidas": 417.0,
+        "vonix_atendidas": 396.0,
+        "vonix_abandonadas": 21.0,
+        "ia_total": 482.0,
+        "ia_transferencia": 342.0,
+        "ia_solucionadas": 214.0,
+        "custo": 601.31
+      },
+      {
+        "day": 3,
+        "ura": 748.0,
+        "ura_atendidas": 508.0,
+        "auto_servico": 226.0,
+        "vonix_recebidas": 346.0,
+        "vonix_atendidas": 340.0,
+        "vonix_abandonadas": 6.0,
+        "ia_total": 381.0,
+        "ia_transferencia": 278.0,
+        "ia_solucionadas": 177.0,
+        "custo": 512.87
+      },
+      {
+        "day": 4,
+        "ura": 187.0,
+        "ura_atendidas": 121.0,
+        "auto_servico": 121.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 72.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 16.0,
+        "custo": 308.71
+      },
+      {
+        "day": 5,
+        "ura": 27.0,
+        "ura_atendidas": 16.0,
+        "auto_servico": 16.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 24.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 14.0,
+        "custo": 295.79
+      },
+      {
+        "day": 6,
+        "ura": 1292.0,
+        "ura_atendidas": 893.0,
+        "auto_servico": 429.0,
+        "vonix_recebidas": 601.0,
+        "vonix_atendidas": 401.0,
+        "vonix_abandonadas": 200.0,
+        "ia_total": 664.0,
+        "ia_transferencia": 451.0,
+        "ia_solucionadas": 311.0,
+        "custo": 661.1
+      },
+      {
+        "day": 7,
+        "ura": 770.0,
+        "ura_atendidas": 531.0,
+        "auto_servico": 238.0,
+        "vonix_recebidas": 409.0,
+        "vonix_atendidas": 387.0,
+        "vonix_abandonadas": 22.0,
+        "ia_total": 440.0,
+        "ia_transferencia": 306.0,
+        "ia_solucionadas": 262.0,
+        "custo": 596.25
+      },
+      {
+        "day": 8,
+        "ura": 86.0,
+        "ura_atendidas": 68.0,
+        "auto_servico": 0,
+        "vonix_recebidas": 378.0,
+        "vonix_atendidas": 347.0,
+        "vonix_abandonadas": 31.0,
+        "ia_total": 442.0,
+        "ia_transferencia": 313.0,
+        "ia_solucionadas": 260.0,
+        "custo": 630.46
+      },
+      {
+        "day": 9,
+        "ura": 734.0,
+        "ura_atendidas": 477.0,
+        "auto_servico": 239.0,
+        "vonix_recebidas": 338.0,
+        "vonix_atendidas": 324.0,
+        "vonix_abandonadas": 14.0,
+        "ia_total": 386.0,
+        "ia_transferencia": 265.0,
+        "ia_solucionadas": 161.0,
+        "custo": 549.83
+      },
+      {
+        "day": 10,
+        "ura": 867.0,
+        "ura_atendidas": 583.0,
+        "auto_servico": 270.0,
+        "vonix_recebidas": 406.0,
+        "vonix_atendidas": 338.0,
+        "vonix_abandonadas": 68.0,
+        "ia_total": 440.0,
+        "ia_transferencia": 309.0,
+        "ia_solucionadas": 175.0,
+        "custo": 605.22
+      },
+      {
+        "day": 11,
+        "ura": 148.0,
+        "ura_atendidas": 89.0,
+        "auto_servico": 89.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 53.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 28.0,
+        "custo": 301.67
+      },
+      {
+        "day": 12,
+        "ura": 53.0,
+        "ura_atendidas": 38.0,
+        "auto_servico": 38.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 17.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 9.0,
+        "custo": 291.94
+      },
+      {
+        "day": 13,
+        "ura": 542.0,
+        "ura_atendidas": 365.0,
+        "auto_servico": 65.0,
+        "vonix_recebidas": 377.0,
+        "vonix_atendidas": 350.0,
+        "vonix_abandonadas": 27.0,
+        "ia_total": 407.0,
+        "ia_transferencia": 134.0,
+        "ia_solucionadas": 168.0,
+        "custo": 562.26
+      },
+      {
+        "day": 14,
+        "ura": 887.0,
+        "ura_atendidas": 587.0,
+        "auto_servico": 295.0,
+        "vonix_recebidas": 386.0,
+        "vonix_atendidas": 366.0,
+        "vonix_abandonadas": 20.0,
+        "ia_total": 466.0,
+        "ia_transferencia": 314.0,
+        "ia_solucionadas": 233.0,
+        "custo": 569.91
+      },
+      {
+        "day": 15,
+        "ura": 798.0,
+        "ura_atendidas": 471.0,
+        "auto_servico": 258.0,
+        "vonix_recebidas": 295.0,
+        "vonix_atendidas": 271.0,
+        "vonix_abandonadas": 24.0,
+        "ia_total": 355.0,
+        "ia_transferencia": 223.0,
+        "ia_solucionadas": 169.0,
+        "custo": 510.84
+      },
+      {
+        "day": 16,
+        "ura": 494.0,
+        "ura_atendidas": 340.0,
+        "auto_servico": 181.0,
+        "vonix_recebidas": 212.0,
+        "vonix_atendidas": 207.0,
+        "vonix_abandonadas": 5.0,
+        "ia_total": 255.0,
+        "ia_transferencia": 170.0,
+        "ia_solucionadas": 110.0,
+        "custo": 480.15
+      },
+      {
+        "day": 17,
+        "ura": 826.0,
+        "ura_atendidas": 600.0,
+        "auto_servico": 0,
+        "vonix_recebidas": 194.0,
+        "vonix_atendidas": 187.0,
+        "vonix_abandonadas": 7.0,
+        "ia_total": 284.0,
+        "ia_transferencia": 147.0,
+        "ia_solucionadas": 191.0,
+        "custo": 442.8
+      },
+      {
+        "day": 18,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 55.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 27.0,
+        "custo": 300.46
+      },
+      {
+        "day": 19,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 11.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 4.0,
+        "custo": 290.73
+      },
+      {
+        "day": 20,
+        "ura": 123.0,
+        "ura_atendidas": 75.0,
+        "auto_servico": 15.0,
+        "vonix_recebidas": 485.0,
+        "vonix_atendidas": 368.0,
+        "vonix_abandonadas": 117.0,
+        "ia_total": 569.0,
+        "ia_transferencia": 386.0,
+        "ia_solucionadas": 307.0,
+        "custo": 608.63
+      },
+      {
+        "day": 21,
+        "ura": 1089.0,
+        "ura_atendidas": 693.0,
+        "auto_servico": 316.0,
+        "vonix_recebidas": 476.0,
+        "vonix_atendidas": 362.0,
+        "vonix_abandonadas": 114.0,
+        "ia_total": 529.0,
+        "ia_transferencia": 366.0,
+        "ia_solucionadas": 216.0,
+        "custo": 692.28
+      },
+      {
+        "day": 22,
+        "ura": 809.0,
+        "ura_atendidas": 544.0,
+        "auto_servico": 292.0,
+        "vonix_recebidas": 320.0,
+        "vonix_atendidas": 291.0,
+        "vonix_abandonadas": 29.0,
+        "ia_total": 352.0,
+        "ia_transferencia": 122.0,
+        "ia_solucionadas": 179.0,
+        "custo": 559.13
+      },
+      {
+        "day": 23,
+        "ura": 561.0,
+        "ura_atendidas": 385.0,
+        "auto_servico": 223.0,
+        "vonix_recebidas": 235.0,
+        "vonix_atendidas": 213.0,
+        "vonix_abandonadas": 22.0,
+        "ia_total": 251.0,
+        "ia_transferencia": 170.0,
+        "ia_solucionadas": 109.0,
+        "custo": 531.24
+      },
+      {
+        "day": 24,
+        "ura": 443.0,
+        "ura_atendidas": 281.0,
+        "auto_servico": 144.0,
+        "vonix_recebidas": 180.0,
+        "vonix_atendidas": 177.0,
+        "vonix_abandonadas": 3.0,
+        "ia_total": 187.0,
+        "ia_transferencia": 92.0,
+        "ia_solucionadas": 93.0,
+        "custo": 425.92
+      },
+      {
+        "day": 25,
+        "ura": 108.0,
+        "ura_atendidas": 80.0,
+        "auto_servico": 80.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 36.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 21.0,
+        "custo": 300.3
+      },
+      {
+        "day": 26,
+        "ura": 32.0,
+        "ura_atendidas": 18.0,
+        "auto_servico": 18.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 8.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 2.0,
+        "custo": 289.74
+      },
+      {
+        "day": 27,
+        "ura": 754.0,
+        "ura_atendidas": 511.0,
+        "auto_servico": 265.0,
+        "vonix_recebidas": 347.0,
+        "vonix_atendidas": 307.0,
+        "vonix_abandonadas": 40.0,
+        "ia_total": 349.0,
+        "ia_transferencia": 252.0,
+        "ia_solucionadas": 143.0,
+        "custo": 666.76
+      },
+      {
+        "day": 28,
+        "ura": 598.0,
+        "ura_atendidas": 399.0,
+        "auto_servico": 221.0,
+        "vonix_recebidas": 253.0,
+        "vonix_atendidas": 231.0,
+        "vonix_abandonadas": 22.0,
+        "ia_total": 256.0,
+        "ia_transferencia": 191.0,
+        "ia_solucionadas": 0,
+        "custo": 563.03
+      },
+      {
+        "day": 29,
+        "ura": 625.0,
+        "ura_atendidas": 417.0,
+        "auto_servico": 222.0,
+        "vonix_recebidas": 274.0,
+        "vonix_atendidas": 242.0,
+        "vonix_abandonadas": 32.0,
+        "ia_total": 278.0,
+        "ia_transferencia": 212.0,
+        "ia_solucionadas": 106.0,
+        "custo": 555.22
+      },
+      {
+        "day": 30,
+        "ura": 557.0,
+        "ura_atendidas": 375.0,
+        "auto_servico": 203.0,
+        "vonix_recebidas": 247.0,
+        "vonix_atendidas": 207.0,
+        "vonix_abandonadas": 40.0,
+        "ia_total": 263.0,
+        "ia_transferencia": 187.0,
+        "ia_solucionadas": 89.0,
+        "custo": 502.2
+      },
+      {
+        "day": 31,
+        "ura": 669.0,
+        "ura_atendidas": 467.0,
+        "auto_servico": 255.0,
+        "vonix_recebidas": 303.0,
+        "vonix_atendidas": 279.0,
+        "vonix_abandonadas": 24.0,
+        "ia_total": 352.0,
+        "ia_transferencia": 244.0,
+        "ia_solucionadas": 113.0,
+        "custo": 590.04
+      }
+    ]
+  },
+  "agosto": {
+    "totais": {
+      "ura_total": 17211.0,
+      "ura_atendidas": 12411.0,
+      "ura_auto_servico": 8296.0,
+      "vonix_recebidas": 5782.0,
+      "vonix_atendidas": 4880.0,
+      "vonix_abandonadas": 902.0,
+      "ia_atendimento_total": 7926.0,
+      "ia_transferencia": 5207.0,
+      "ia_solucionadas": 2496.0,
+      "ia_custo_total": 9200.68,
+      "custo_15": 5237.38
+    },
+    "dias": [
+      {
+        "day": 1,
+        "ura": 135.0,
+        "ura_atendidas": 82.0,
+        "auto_servico": 82.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 46.0,
+        "ia_transferencia": 1.0,
+        "ia_solucionadas": 11.0,
+        "custo": 196.98
+      },
+      {
+        "day": 2,
+        "ura": 63.0,
+        "ura_atendidas": 42.0,
+        "auto_servico": 42.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 21.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 2.0,
+        "custo": 187.43
+      },
+      {
+        "day": 3,
+        "ura": 1091.0,
+        "ura_atendidas": 754.0,
+        "auto_servico": 419.0,
+        "vonix_recebidas": 444.0,
+        "vonix_atendidas": 320.0,
+        "vonix_abandonadas": 124.0,
+        "ia_total": 483.0,
+        "ia_transferencia": 345.0,
+        "ia_solucionadas": 189.0,
+        "custo": 469.05
+      },
+      {
+        "day": 4,
+        "ura": 892.0,
+        "ura_atendidas": 636.0,
+        "auto_servico": 336.0,
+        "vonix_recebidas": 390.0,
+        "vonix_atendidas": 322.0,
+        "vonix_abandonadas": 68.0,
+        "ia_total": 425.0,
+        "ia_transferencia": 298.0,
+        "ia_solucionadas": 146.0,
+        "custo": 433.47
+      },
+      {
+        "day": 5,
+        "ura": 934.0,
+        "ura_atendidas": 652.0,
+        "auto_servico": 351.0,
+        "vonix_recebidas": 403.0,
+        "vonix_atendidas": 312.0,
+        "vonix_abandonadas": 91.0,
+        "ia_total": 415.0,
+        "ia_transferencia": 278.0,
+        "ia_solucionadas": 157.0,
+        "custo": 452.48
+      },
+      {
+        "day": 6,
+        "ura": 1093.0,
+        "ura_atendidas": 736.0,
+        "auto_servico": 336.0,
+        "vonix_recebidas": 498.0,
+        "vonix_atendidas": 383.0,
+        "vonix_abandonadas": 115.0,
+        "ia_total": 505.0,
+        "ia_transferencia": 377.0,
+        "ia_solucionadas": 173.0,
+        "custo": 414.83
+      },
+      {
+        "day": 7,
+        "ura": 927.0,
+        "ura_atendidas": 641.0,
+        "auto_servico": 373.0,
+        "vonix_recebidas": 369.0,
+        "vonix_atendidas": 347.0,
+        "vonix_abandonadas": 22.0,
+        "ia_total": 421.0,
+        "ia_transferencia": 272.0,
+        "ia_solucionadas": 169.0,
+        "custo": 425.27
+      },
+      {
+        "day": 8,
+        "ura": 183.0,
+        "ura_atendidas": 124.0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 58.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 5.0,
+        "custo": 194.71
+      },
+      {
+        "day": 9,
+        "ura": 27.0,
+        "ura_atendidas": 641.0,
+        "auto_servico": 641.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 8.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 1.0,
+        "custo": 183.24
+      },
+      {
+        "day": 10,
+        "ura": 1425.0,
+        "ura_atendidas": 989.0,
+        "auto_servico": 989.0,
+        "vonix_recebidas": 125.0,
+        "vonix_atendidas": 121.0,
+        "vonix_abandonadas": 4.0,
+        "ia_total": 623.0,
+        "ia_transferencia": 415.0,
+        "ia_solucionadas": 255.0,
+        "custo": 519.76
+      },
+      {
+        "day": 11,
+        "ura": 1008.0,
+        "ura_atendidas": 742.0,
+        "auto_servico": 389.0,
+        "vonix_recebidas": 457.0,
+        "vonix_atendidas": 356.0,
+        "vonix_abandonadas": 101.0,
+        "ia_total": 434.0,
+        "ia_transferencia": 313.0,
+        "ia_solucionadas": 148.0,
+        "custo": 440.24
+      },
+      {
+        "day": 12,
+        "ura": 1067.0,
+        "ura_atendidas": 742.0,
+        "auto_servico": 417.0,
+        "vonix_recebidas": 432.0,
+        "vonix_atendidas": 352.0,
+        "vonix_abandonadas": 80.0,
+        "ia_total": 494.0,
+        "ia_transferencia": 317.0,
+        "ia_solucionadas": 123.0,
+        "custo": 444.73
+      },
+      {
+        "day": 13,
+        "ura": 767.0,
+        "ura_atendidas": 531.0,
+        "auto_servico": 256.0,
+        "vonix_recebidas": 346.0,
+        "vonix_atendidas": 251.0,
+        "vonix_abandonadas": 95.0,
+        "ia_total": 355.0,
+        "ia_transferencia": 254.0,
+        "ia_solucionadas": 73.0,
+        "custo": 384.0
+      },
+      {
+        "day": 14,
+        "ura": 672.0,
+        "ura_atendidas": 452.0,
+        "auto_servico": 314.0,
+        "vonix_recebidas": 211.0,
+        "vonix_atendidas": 196.0,
+        "vonix_abandonadas": 15.0,
+        "ia_total": 305.0,
+        "ia_transferencia": 208.0,
+        "ia_solucionadas": 69.0,
+        "custo": 300.92
+      },
+      {
+        "day": 15,
+        "ura": 121.0,
+        "ura_atendidas": 68.0,
+        "auto_servico": 68.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 28.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 3.0,
+        "custo": 190.27
+      },
+      {
+        "day": 16,
+        "ura": 38.0,
+        "ura_atendidas": 29.0,
+        "auto_servico": 29.0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 10.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 183.19
+      },
+      {
+        "day": 17,
+        "ura": 877.0,
+        "ura_atendidas": 589.0,
+        "auto_servico": 398.0,
+        "vonix_recebidas": 276.0,
+        "vonix_atendidas": 258.0,
+        "vonix_abandonadas": 18.0,
+        "ia_total": 395.0,
+        "ia_transferencia": 275.0,
+        "ia_solucionadas": 112.0,
+        "custo": 417.57
+      },
+      {
+        "day": 18,
+        "ura": 650.0,
+        "ura_atendidas": 444.0,
+        "auto_servico": 331.0,
+        "vonix_recebidas": 196.0,
+        "vonix_atendidas": 183.0,
+        "vonix_abandonadas": 13.0,
+        "ia_total": 301.0,
+        "ia_transferencia": 211.0,
+        "ia_solucionadas": 89.0,
+        "custo": 349.26
+      },
+      {
+        "day": 19,
+        "ura": 630.0,
+        "ura_atendidas": 430.0,
+        "auto_servico": 309.0,
+        "vonix_recebidas": 207.0,
+        "vonix_atendidas": 188.0,
+        "vonix_abandonadas": 19.0,
+        "ia_total": 323.0,
+        "ia_transferencia": 224.0,
+        "ia_solucionadas": 93.0,
+        "custo": 385.97
+      },
+      {
+        "day": 20,
+        "ura": 844.0,
+        "ura_atendidas": 586.0,
+        "auto_servico": 419.0,
+        "vonix_recebidas": 232.0,
+        "vonix_atendidas": 205.0,
+        "vonix_abandonadas": 27.0,
+        "ia_total": 384.0,
+        "ia_transferencia": 251.0,
+        "ia_solucionadas": 93.0,
+        "custo": 323.8
+      },
+      {
+        "day": 21,
+        "ura": 539.0,
+        "ura_atendidas": 358.0,
+        "auto_servico": 269.0,
+        "vonix_recebidas": 180.0,
+        "vonix_atendidas": 176.0,
+        "vonix_abandonadas": 4.0,
+        "ia_total": 252.0,
+        "ia_transferencia": 125.0,
+        "ia_solucionadas": 99.0,
+        "custo": 277.17
+      },
+      {
+        "day": 22,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 33.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 5.0,
+        "custo": 184.33
+      },
+      {
+        "day": 23,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 11.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 4.0,
+        "custo": 181.7
+      },
+      {
+        "day": 24,
+        "ura": 1221.0,
+        "ura_atendidas": 805.0,
+        "auto_servico": 690.0,
+        "vonix_recebidas": 281.0,
+        "vonix_atendidas": 248.0,
+        "vonix_abandonadas": 33.0,
+        "ia_total": 512.0,
+        "ia_transferencia": 271.0,
+        "ia_solucionadas": 240.0,
+        "custo": 341.1
+      },
+      {
+        "day": 25,
+        "ura": 628.0,
+        "ura_atendidas": 427.0,
+        "auto_servico": 314.0,
+        "vonix_recebidas": 185.0,
+        "vonix_atendidas": 179.0,
+        "vonix_abandonadas": 6.0,
+        "ia_total": 302.0,
+        "ia_transferencia": 195.0,
+        "ia_solucionadas": 84.0,
+        "custo": 251.72
+      },
+      {
+        "day": 26,
+        "ura": 704.0,
+        "ura_atendidas": 457.0,
+        "auto_servico": 338.0,
+        "vonix_recebidas": 187.0,
+        "vonix_atendidas": 170.0,
+        "vonix_abandonadas": 17.0,
+        "ia_total": 257.0,
+        "ia_transferencia": 203.0,
+        "ia_solucionadas": 61.0,
+        "custo": 225.49
+      },
+      {
+        "day": 27,
+        "ura": 604.0,
+        "ura_atendidas": 410.0,
+        "auto_servico": 273.0,
+        "vonix_recebidas": 218.0,
+        "vonix_atendidas": 176.0,
+        "vonix_abandonadas": 42.0,
+        "ia_total": 237.0,
+        "ia_transferencia": 195.0,
+        "ia_solucionadas": 45.0,
+        "custo": 227.5
+      },
+      {
+        "day": 28,
+        "ura": 71.0,
+        "ura_atendidas": 44.0,
+        "auto_servico": -87.0,
+        "vonix_recebidas": 145.0,
+        "vonix_atendidas": 137.0,
+        "vonix_abandonadas": 8.0,
+        "ia_total": 232.0,
+        "ia_transferencia": 179.0,
+        "ia_solucionadas": 39.0,
+        "custo": 251.72
+      },
+      {
+        "day": 29,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 48.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 8.0,
+        "custo": 181.39
+      },
+      {
+        "day": 30,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 8.0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 181.39
+      },
+      {
+        "day": 31,
+        "ura": 0,
+        "ura_atendidas": 0,
+        "auto_servico": 0,
+        "vonix_recebidas": 0,
+        "vonix_atendidas": 0,
+        "vonix_abandonadas": 0,
+        "ia_total": 0,
+        "ia_transferencia": 0,
+        "ia_solucionadas": 0,
+        "custo": 0
+      }
+    ]
+  }
+};
+
+let _chartInstances = {};
+
+function cap(s) {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString('pt-BR');
+}
+
+function fmtR(n) {
+  return 'R$ ' + Number(n || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function selecionarParMeses(prevMes, currMes, pillEl) {
+  if (pillEl) {
+    document.querySelectorAll('.month-carousel-pill').forEach(p => p.classList.remove('active'));
+    pillEl.classList.add('active');
+  }
+
+  const pData = DB_COMPARATIVO[prevMes];
+  const cData = DB_COMPARATIVO[currMes];
+
+  if (!pData || !cData) return;
+
+  const pTot = pData.totais;
+  const cTot = cData.totais;
+  const pName = cap(prevMes);
+  const cName = cap(currMes);
+
+  document.getElementById('lbl-mes-prev').textContent = pName;
+  document.getElementById('lbl-mes-curr').textContent = cName;
+
+  const pctGasto = pTot.ia_custo_total > 0 ? (((cTot.ia_custo_total - pTot.ia_custo_total) / pTot.ia_custo_total) * 100) : 0;
+  const valDiffGasto = Math.abs(cTot.ia_custo_total - pTot.ia_custo_total);
+  const heroPctEl = document.getElementById('val-hero-pct');
+  heroPctEl.textContent = (pctGasto > 0 ? '+' : '') + pctGasto.toFixed(1).replace('.', ',') + '%';
+  document.getElementById('val-hero-sub').textContent = 'De ' + fmtR(pTot.ia_custo_total) + ' em ' + pName + ' para ' + fmtR(cTot.ia_custo_total) + ' em ' + cName + ' — ' + (pctGasto <= 0 ? 'economia de ' : 'aumento de ') + fmtR(valDiffGasto);
+
+  document.querySelectorAll('.kpi-side__month.prev, .lg-prev').forEach(el => el.textContent = pName);
+  document.querySelectorAll('.kpi-side__month.curr, .lg-curr').forEach(el => el.textContent = cName);
+
+  function applyKpi(key, elPrevId, elCurrId, elDeltaId, isInverseGood) {
+    const vP = pTot[key] || 0;
+    const vC = cTot[key] || 0;
+    document.getElementById(elPrevId).textContent = fmt(vP);
+    document.getElementById(elCurrId).textContent = fmt(vC);
+    const dPct = vP > 0 ? (((vC - vP) / vP) * 100) : 0;
+    const deltaEl = document.getElementById(elDeltaId);
+    deltaEl.textContent = (dPct > 0 ? '+' : '') + dPct.toFixed(1).replace('.', ',') + '% ' + (dPct > 0 ? '↑' : '↓');
+    const isUp = dPct >= 0;
+    const isGood = isInverseGood ? !isUp : isUp;
+    deltaEl.className = 'delta-badge ' + (isGood ? 'up' : 'down');
+  }
+
+  applyKpi('ura_total', 'kpi-vprev-ura', 'kpi-vcurr-ura', 'delta-ura', false);
+  applyKpi('ura_atendidas', 'kpi-vprev-uraat', 'kpi-vcurr-uraat', 'delta-uraat', false);
+  applyKpi('ura_auto_servico', 'kpi-vprev-auto', 'kpi-vcurr-auto', 'delta-auto', false);
+  applyKpi('vonix_atendidas', 'kpi-vprev-vonat', 'kpi-vcurr-vonat', 'delta-vonat', true);
+  applyKpi('vonix_abandonadas', 'kpi-vprev-vonab', 'kpi-vcurr-vonab', 'delta-vonab', true);
+  applyKpi('ia_atendimento_total', 'kpi-vprev-ia', 'kpi-vcurr-ia', 'delta-ia', false);
+
+  // Resoluções sem operador sem (% do total URA)
+  const pSemOp = pTot.ura_auto_servico + pTot.ia_solucionadas;
+  const cSemOp = cTot.ura_auto_servico + cTot.ia_solucionadas;
+
+  document.getElementById('lbl-funnel-prev').textContent = pName;
+  document.getElementById('lbl-funnel-curr').textContent = cName;
+  document.getElementById('lbl-hero-prev').textContent = pName;
+  document.getElementById('lbl-hero-curr').textContent = cName;
+
+  document.getElementById('fn-lbl-prev').textContent = pName;
+  document.getElementById('fn-val-prev').textContent = fmt(pSemOp);
+  document.getElementById('fn-sub-prev').textContent = 'Auto Serviço URA (' + fmt(pTot.ura_auto_servico) + ') + Solucionadas pela IA (' + fmt(pTot.ia_solucionadas) + ')';
+
+  document.getElementById('fn-lbl-curr').textContent = cName;
+  document.getElementById('fn-val-curr').textContent = fmt(cSemOp);
+  document.getElementById('fn-sub-curr').textContent = 'Auto Serviço URA (' + fmt(cTot.ura_auto_servico) + ') + Solucionadas pela IA (' + fmt(cTot.ia_solucionadas) + ')';
+
+  const fnDiff = cSemOp - pSemOp;
+  const fnPct = pSemOp > 0 ? (((cSemOp - pSemOp) / pSemOp) * 100) : 0;
+  const fnDeltaEl = document.getElementById('fn-delta');
+  fnDeltaEl.textContent = (fnPct > 0 ? '+' : '') + fnPct.toFixed(1).replace('.', ',') + '% ' + (fnPct > 0 ? '↑' : '↓');
+  // Se a variação de chamadas resolvidas for negativa (queda), fica VERMELHO (down)
+  fnDeltaEl.className = 'delta-badge ' + (fnPct >= 0 ? 'up' : 'down');
+  document.getElementById('fn-diff').textContent = (fnDiff >= 0 ? '+' : '') + fmt(fnDiff) + ' chamadas resolvidas sem custo humano';
+
+  // Step 1: Auto Servico
+  document.getElementById('f1-lbl-prev').textContent = pName;
+  document.getElementById('f1-val-prev').textContent = fmt(pTot.ura_auto_servico);
+  document.getElementById('f1-lbl-curr').textContent = cName;
+  document.getElementById('f1-val-curr').textContent = fmt(cTot.ura_auto_servico);
+  const f1Pct = pTot.ura_auto_servico > 0 ? (((cTot.ura_auto_servico - pTot.ura_auto_servico) / pTot.ura_auto_servico) * 100) : 0;
+  const f1Badge = document.getElementById('f1-badge');
+  f1Badge.textContent = (f1Pct > 0 ? '+' : '') + f1Pct.toFixed(1).replace('.', ',') + '% ' + (f1Pct > 0 ? '↑' : '↓');
+  f1Badge.className = 'funnel-step-box__badge ' + (f1Pct >= 0 ? 'up' : 'down');
+  if (f1Pct < 0) {
+    f1Badge.style.color = '#f87171'; f1Badge.style.background = 'rgba(248,113,113,0.1)'; f1Badge.style.borderColor = 'rgba(248,113,113,0.25)';
+  } else {
+    f1Badge.style.color = '#34d399'; f1Badge.style.background = 'rgba(16,185,129,0.1)'; f1Badge.style.borderColor = 'rgba(16,185,129,0.25)';
+  }
+
+  // Step 2: IA Solucionadas - Quando negativo, fica VERMELHO!
+  document.getElementById('f2-lbl-prev').textContent = pName + ' (Solucionadas)';
+  document.getElementById('f2-val-prev').textContent = fmt(pTot.ia_solucionadas);
+  document.getElementById('f2-lbl-curr').textContent = cName + ' (Solucionadas)';
+  document.getElementById('f2-val-curr').textContent = fmt(cTot.ia_solucionadas);
+  const f2Pct = pTot.ia_solucionadas > 0 ? (((cTot.ia_solucionadas - pTot.ia_solucionadas) / pTot.ia_solucionadas) * 100) : 0;
+  const f2Badge = document.getElementById('f2-badge');
+  f2Badge.textContent = (f2Pct > 0 ? '+' : '') + f2Pct.toFixed(1).replace('.', ',') + '% ' + (f2Pct > 0 ? '↑' : '↓');
+  if (f2Pct < 0) {
+    f2Badge.style.color = '#f87171'; f2Badge.style.background = 'rgba(248,113,113,0.1)'; f2Badge.style.borderColor = 'rgba(248,113,113,0.25)';
+  } else {
+    f2Badge.style.color = '#34d399'; f2Badge.style.background = 'rgba(16,185,129,0.1)'; f2Badge.style.borderColor = 'rgba(16,185,129,0.25)';
+  }
+
+  // Step 3: Vonix
+  document.getElementById('f3-lbl-prev').textContent = pName + ' (Vonix Atend.)';
+  document.getElementById('f3-val-prev').textContent = fmt(pTot.vonix_atendidas);
+  document.getElementById('f3-lbl-curr').textContent = cName + ' (Vonix Atend.)';
+  document.getElementById('f3-val-curr').textContent = fmt(cTot.vonix_atendidas);
+  const f3Pct = pTot.vonix_atendidas > 0 ? (((cTot.vonix_atendidas - pTot.vonix_atendidas) / pTot.vonix_atendidas) * 100) : 0;
+  const f3Badge = document.getElementById('f3-badge');
+  f3Badge.textContent = (f3Pct > 0 ? '+' : '') + f3Pct.toFixed(1).replace('.', ',') + '% Carga ' + (f3Pct > 0 ? '↑' : '↓');
+  // Para Vonix, queda na carga do humano e positiva (verde)
+  if (f3Pct <= 0) {
+    f3Badge.style.color = '#34d399'; f3Badge.style.background = 'rgba(16,185,129,0.1)'; f3Badge.style.borderColor = 'rgba(16,185,129,0.25)';
+  } else {
+    f3Badge.style.color = '#f87171'; f3Badge.style.background = 'rgba(248,113,113,0.1)'; f3Badge.style.borderColor = 'rgba(248,113,113,0.25)';
+  }
+
+  // Custos IA
+  document.getElementById('c-lbl-prev').textContent = 'Custo Total ' + pName;
+  document.getElementById('c-val-prev').textContent = fmtR(pTot.ia_custo_total);
+  document.getElementById('c-lbl-curr').textContent = 'Custo Total ' + cName;
+  document.getElementById('c-val-curr').textContent = fmtR(cTot.ia_custo_total);
+
+  const uP = pTot.ia_atendimento_total > 0 ? (pTot.ia_custo_total / pTot.ia_atendimento_total) : 0;
+  const uC = cTot.ia_atendimento_total > 0 ? (cTot.ia_custo_total / cTot.ia_atendimento_total) : 0;
+  document.getElementById('c-val-unit').textContent = fmtR(uC);
+  document.getElementById('c-sub-unit').textContent = cName + ' — de ' + fmtR(uP) + ' para ' + fmtR(uC);
+
+  // Tempos Medios e Resolucao IA
+  document.getElementById('tm-mprev-tme').textContent = pName;
+  document.getElementById('tm-mcurr-tme').textContent = cName;
+  document.getElementById('tm-vprev-tme').textContent = (prevMes === 'julho' ? '1min 53s' : (prevMes === 'junho' ? '1min 48s' : '2min 00s'));
+  document.getElementById('tm-vcurr-tme').textContent = (currMes === 'agosto' ? '2min 24s' : (currMes === 'julho' ? '1min 53s' : '2min 10s'));
+
+  document.getElementById('tm-mprev-tma').textContent = pName;
+  document.getElementById('tm-mcurr-tma').textContent = cName;
+  document.getElementById('tm-vprev-tma').textContent = (prevMes === 'julho' ? '2min 16s' : (prevMes === 'junho' ? '2min 24s' : '2min 00s'));
+  document.getElementById('tm-vcurr-tma').textContent = (currMes === 'agosto' ? '1min 48s' : (currMes === 'julho' ? '2min 16s' : '2min 00s'));
+
+  // Resolucao IA: Se negativo, fica VERMELHO!
+  document.getElementById('tm-mprev-sol').textContent = pName;
+  document.getElementById('tm-mcurr-sol').textContent = cName;
+  document.getElementById('tm-vprev-sol').textContent = fmt(pTot.ia_solucionadas);
+  document.getElementById('tm-vcurr-sol').textContent = fmt(cTot.ia_solucionadas);
+  const solPct = pTot.ia_solucionadas > 0 ? (((cTot.ia_solucionadas - pTot.ia_solucionadas) / pTot.ia_solucionadas) * 100) : 0;
+  const tmDeltaSol = document.getElementById('tm-delta-sol');
+  tmDeltaSol.textContent = (solPct > 0 ? '+' : '') + solPct.toFixed(1).replace('.', ',') + '% ' + (solPct > 0 ? '↑' : '↓');
+  tmDeltaSol.className = 'delta-badge ' + (solPct >= 0 ? 'up' : 'down');
+
+  renderChart4Pontos(pName, cName, pTot.custo_15, pTot.ia_custo_total, cTot.custo_15, cTot.ia_custo_total);
+
+  renderChartDiario('chartIA', pName, cName, pData.dias, cData.dias, 'ia_total');
+  renderChartDiario('chartCusto', pName, cName, pData.dias, cData.dias, 'custo', v => 'R$ ' + v);
+  renderChartDiario('chartURA', pName, cName, pData.dias, cData.dias, 'ura');
+  renderChartDiario('chartVonix', pName, cName, pData.dias, cData.dias, 'vonix_atendidas');
+
+  renderChartBarras(pName, cName, pTot, cTot);
+}
+
+function renderChart4Pontos(pName, cName, p15, pTot, c15, cTot) {
+  const canvas = document.getElementById('chartCustoHeartbeat');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if (_chartInstances['chartCustoHeartbeat']) {
+    _chartInstances['chartCustoHeartbeat'].destroy();
+  }
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 240);
+  grad.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+  grad.addColorStop(0.5, 'rgba(16, 185, 129, 0.18)');
+  grad.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+
+  const labels = ['15 / ' + pName, '30 / ' + pName, '15 / ' + cName, '30 / ' + cName];
+  const valores = [p15, pTot, c15, cTot];
+
+  _chartInstances['chartCustoHeartbeat'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: valores,
+          borderColor: '#10b981',
+          backgroundColor: grad,
+          borderWidth: 3,
+          pointStyle: 'circle',
+          pointRadius: 5,
+          pointBackgroundColor: '#34d399',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          tension: 0,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      events: [],
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { font: { size: 11, weight: '600' }, color: '#a5b4fc' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            font: { size: 10 },
+            callback: v => 'R$ ' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderChartDiario(canvasId, pName, cName, pDays, cDays, field, yFmt) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if (_chartInstances[canvasId]) {
+    _chartInstances[canvasId].destroy();
+  }
+
+  const maxLen = Math.max(pDays.length, cDays.length);
+  const labels = Array.from({length: maxLen}, (_, i) => (i + 1).toString());
+
+  const pData = pDays.map(d => d[field] || 0);
+  const cData = cDays.map(d => d[field] || 0);
+
+  _chartInstances[canvasId] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: pName,
+          data: pData,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99,102,241,0.08)',
+          borderWidth: 1.5,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          tension: 0.35
+        },
+        {
+          label: cName,
+          data: cData,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.08)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#141722',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          padding: 10,
+          titleColor: '#8b92b8',
+          bodyColor: '#f0f2ff',
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': ' + (yFmt ? yFmt(ctx.parsed.y) : ctx.parsed.y)
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 }, maxTicksLimit: 10 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 }, callback: v => yFmt ? yFmt(v) : v } }
+      }
+    }
+  });
+}
+
+function renderChartBarras(pName, cName, pTot, cTot) {
+  const canvas = document.getElementById('chartBarras');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if (_chartInstances['chartBarras']) {
+    _chartInstances['chartBarras'].destroy();
+  }
+
+  const labels = ['URA Total', 'URA Atendidas', 'Auto Serviço', 'Vonix Atend.', 'Vonix Abandon.', 'IA Total', 'IA Transf.', 'IA Soluc.'];
+  const pVals = [pTot.ura_total, pTot.ura_atendidas, pTot.ura_auto_servico, pTot.vonix_atendidas, pTot.vonix_abandonadas, pTot.ia_atendimento_total, pTot.ia_transferencia, pTot.ia_solucionadas];
+  const cVals = [cTot.ura_total, cTot.ura_atendidas, cTot.ura_auto_servico, cTot.vonix_atendidas, cTot.vonix_abandonadas, cTot.ia_atendimento_total, cTot.ia_transferencia, cTot.ia_solucionadas];
+
+  _chartInstances['chartBarras'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: pName,
+          data: pVals,
+          backgroundColor: 'rgba(99,102,241,0.8)',
+          borderColor: '#6366f1',
+          borderWidth: 1,
+          borderRadius: 6
+        },
+        {
+          label: cName,
+          data: cVals,
+          backgroundColor: 'rgba(16,185,129,0.8)',
+          borderColor: '#10b981',
+          borderWidth: 1,
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#141722',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          padding: 10,
+          titleColor: '#8b92b8',
+          bodyColor: '#f0f2ff'
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 }, callback: v => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v } }
+      }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  selecionarParMeses('julho', 'agosto');
+});
+</script>
+</body>
+</html>
